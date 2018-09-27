@@ -1,0 +1,22 @@
+
+    spark-shell --packages com.microsoft.azure:azure-eventhubs-spark_2.11:2.3.4
+    
+  import org.apache.spark.eventhubs._
+  
+  val without = "Endpoint=sb://iomegaeventhubs.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=uV+fVkYzG3mB8sfC2/RU65m7hLsOMyFsN+SM6tZbHnQ=;"
+  
+  val connectionString = ConnectionStringBuilder(without)   // defined in the previous code block
+  .setEventHubName("comments")
+  .build
+  
+  val ehConf = EventHubsConf(connectionString)
+  
+  val df = spark
+  .readStream
+  .format("eventhubs")
+  .options(ehConf.toMap)
+  .load()
+  
+val eventhubs = df.select($"body" cast "string")
+
+eventHubs.writeStream.outputMode("append").format("console").option("truncate","false").option("numRows",50).start
